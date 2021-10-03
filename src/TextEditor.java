@@ -33,7 +33,6 @@ public class TextEditor {
         clipboard = "";
         undoStack = new Stack<>();
         redoStack = new Stack<>();
-        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
     }
 
     public String append(String value) {
@@ -47,7 +46,6 @@ public class TextEditor {
             sb.insert(position, value);
             position = position + value.length();
         }
-        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
         redoStack.clear();
         return sb.toString();
     }
@@ -74,7 +72,6 @@ public class TextEditor {
         } else if (sb.length() > 0 && position < sb.length()) {
             sb.deleteCharAt(position);
         }
-        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
         redoStack.clear();
         return sb.toString();
     }
@@ -84,7 +81,6 @@ public class TextEditor {
         if (leftPosition >= rightPosition || leftPosition >= sb.length()) {
             return;
         }
-
         select[0] = leftPosition < 0 ? 0 : leftPosition;
         select[1] = rightPosition > sb.length() ? sb.length() : rightPosition;
         selected = true;
@@ -94,7 +90,6 @@ public class TextEditor {
         //cut and copy the selected text into clipboard
         clipboard = "";
         if (selected) {
-            //cut it
             clipboard = sb.substring(select[0], select[1]);
             return delete();
         }
