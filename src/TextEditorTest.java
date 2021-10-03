@@ -1,4 +1,8 @@
 import org.junit.jupiter.api.*;
+
+import javax.naming.InvalidNameException;
+import javax.naming.NameNotFoundException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TextEditorTest {
@@ -230,5 +234,57 @@ public class TextEditorTest {
         assertEquals("is isisisis", editor.paste());
         assertEquals("It isisisis", editor.undo());
         assertEquals("A isisisis", editor.append("A"));
+    }
+
+    @Test
+    public void testCreateAndSwitchFileThrowsException() {
+        //filename "tmp" is created when textEditor is initialized
+        InvalidNameException exception = assertThrows(InvalidNameException.class, () -> editor.createFile("tmp"));
+        assertEquals("File existed: tmp", exception.getMessage());
+
+        assertDoesNotThrow(() -> editor.createFile("mytest"));
+        InvalidNameException exception2 = assertThrows(InvalidNameException.class, () -> editor.createFile("mytest"));
+        assertEquals("File existed: mytest", exception2.getMessage());
+
+        NameNotFoundException exception3 = assertThrows(NameNotFoundException.class, () -> editor.switchFile("AnotherTest"));
+        assertEquals("File does not exist: AnotherTest", exception3.getMessage());
+    }
+
+    @Test
+    public void testCreateAndSwitchFile() {
+        editor.append("She is a good kid.");
+        editor.append(" But she does not");
+        assertEquals("She is a good kid. But she does not like to study.", editor.append(" like to study."));
+
+        editor.select(17,22);
+        assertEquals("She is a good kid she does not like to study.", editor.delete());
+        assertEquals("She is a good kid and she does not like to study.", editor.append(" and"));
+        assertEquals("She is a good kid she does not like to study.", editor.undo());
+
+        assertDoesNotThrow(() -> editor.createFile("mytest"));
+        assertDoesNotThrow(() -> editor.switchFile("mytest"));
+
+        assertEquals("123", editor.append("123"));
+        editor.move(0);
+        assertDoesNotThrow(() -> editor.switchFile("tmp"));
+
+        assertEquals("She is a good kid and she does not like to study.", editor.redo());
+        assertEquals("She is a good kid and also she does not like to study.", editor.append(" also"));
+        editor.select(31, 40);
+
+        assertDoesNotThrow(() -> editor.switchFile("mytest"));
+        assertEquals("Me123", editor.append("Me"));
+
+        assertDoesNotThrow(() -> editor.createFile("StrongHead"));
+        assertDoesNotThrow(() -> editor.switchFile("StrongHead"));
+        editor.append("He is a smart worker.");
+
+        assertDoesNotThrow(() -> editor.switchFile("tmp"));
+        assertEquals("She is a good kid and also she like to study.", editor.delete());
+
+        assertEquals("She is a good kid and also she does not like to study.", editor.undo());
+        assertEquals("She is a good kid and she does not like to study.", editor.undo());
+        assertEquals("She is a good kid she does not like to study.", editor.undo());
+        assertEquals("She is a good kid. But she does not like to study.", editor.undo());
     }
 }

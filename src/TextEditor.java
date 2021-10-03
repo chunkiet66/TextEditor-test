@@ -1,5 +1,8 @@
 import org.w3c.dom.Text;
 
+import javax.naming.InvalidNameException;
+import javax.naming.NameNotFoundException;
+import java.util.HashMap;
 import java.util.Stack;
 
 public class TextEditor {
@@ -26,6 +29,26 @@ public class TextEditor {
     Stack<EditorState> undoStack;
     Stack<EditorState> redoStack;
 
+    private class FileState {
+        EditorState editorState;
+        Stack<EditorState> undoStack;
+        Stack<EditorState> redoStack;
+        public FileState() {
+            editorState = new EditorState("", 0, new int[]{0, 0}, false);
+            undoStack = new Stack<>();
+            redoStack = new Stack<>();
+        }
+
+        public FileState(EditorState editorState, Stack<EditorState> undoStack, Stack<EditorState> redoStack) {
+            this.editorState = editorState;
+            this.undoStack = undoStack;
+            this.redoStack = redoStack;
+        }
+    }
+
+    HashMap<String, FileState> files = new HashMap<>();
+    String currentFile;
+
     public TextEditor() {
         sb = new StringBuilder();
         position = 0;
@@ -33,6 +56,12 @@ public class TextEditor {
         clipboard = "";
         undoStack = new Stack<>();
         redoStack = new Stack<>();
+        currentFile = "tmp";
+        try {
+            createFile(currentFile);
+        } catch (InvalidNameException e) {
+            System.out.println(e);
+        }
     }
 
     public String append(String value) {
@@ -129,11 +158,29 @@ public class TextEditor {
     }
 
     //throw invalid exception error if file is existed
-    public void createFile(String filename) {
+    public void createFile(String filename) throws InvalidNameException {
         //create a new file
+        if (files.containsKey(filename)) {
+            throw new InvalidNameException("File existed: " + filename);
+        }
+        files.put(filename, new FileState());
     }
 
-    public void switchFile(String filename) {
+    public void switchFile(String filename) throws NameNotFoundException {
         //switch to this new file and edit it
+        if (!files.containsKey(filename)) {
+            throw new NameNotFoundException("File does not exist: " + filename);
+        }
+        FileState fileState = files.get(filename);
+        files.put(currentFile, new FileState(new EditorState(sb.toString(), position, select, selected), undoStack, redoStack));
+
+        EditorState editorState = fileState.editorState;
+        this.sb = new StringBuilder(editorState.s);
+        this.position = editorState.position;
+        this.select = editorState.select;
+        this.selected = editorState.selected;
+        this.undoStack = fileState.undoStack;
+        this.redoStack = fileState.redoStack;
+        this.currentFile = filename;
     }
 }
