@@ -1,5 +1,3 @@
-import org.w3c.dom.Text;
-
 import javax.naming.InvalidNameException;
 import javax.naming.NameNotFoundException;
 import java.util.HashMap;
