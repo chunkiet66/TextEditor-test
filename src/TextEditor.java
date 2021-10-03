@@ -1,17 +1,39 @@
+import org.w3c.dom.Text;
+
+import java.util.Stack;
+
 public class TextEditor {
     StringBuilder sb;
     int position;
     int[] select = new int[2];
     boolean selected;
 
-    String clipboard;
+    private class EditorState {
+        String s;
+        int position;
+        int[] select = new int[2];
+        boolean selected;
 
+        public EditorState (String s, int position, int[] select, boolean selected) {
+            this.s = s;
+            this.position = position;
+            this.select = select;
+            this.selected = selected;
+        }
+    }
+
+    String clipboard;
+    Stack<EditorState> undoStack;
+    Stack<EditorState> redoStack;
 
     public TextEditor() {
         sb = new StringBuilder();
         position = 0;
         selected = false;
         clipboard = "";
+        undoStack = new Stack<>();
+        redoStack = new Stack<>();
+        undoStack.push(new EditorState(sb.toString(), position, select, selected));
     }
 
     public String append(String value) {
@@ -24,7 +46,8 @@ public class TextEditor {
             sb.insert(position, value);
             position = position + value.length();
         }
-
+        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        redoStack.clear();
         return sb.toString();
     }
 
@@ -48,6 +71,8 @@ public class TextEditor {
         } else if (sb.length() > 0 && position < sb.length()) {
             sb.deleteCharAt(position);
         }
+        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        redoStack.clear();
         return sb.toString();
     }
 
@@ -79,13 +104,28 @@ public class TextEditor {
     }
 
     public String undo() {
-        //position, sb, selected can be undo/redo
-        //clipboard cant be undo/redo
-        return "";
+        //make it simple, only string can be undo/redo, but still remember the position and select
+        if (undoStack.size() > 1) {
+            redoStack.push(undoStack.pop());
+        }
+        EditorState prevState = undoStack.peek();
+        sb = new StringBuilder(prevState.s);
+        position = prevState.position;
+        select = prevState.select;
+        selected = prevState.selected;
+        return sb.toString();
     }
 
     public String redo() {
-        return "";
+        if (redoStack.size() > 0) {
+            undoStack.push(redoStack.pop());
+        }
+        EditorState prevState = undoStack.peek();
+        sb = new StringBuilder(prevState.s);
+        position = prevState.position;
+        select = prevState.select;
+        selected = prevState.selected;
+        return sb.toString();
     }
 
     //throw invalid exception error if file is existed

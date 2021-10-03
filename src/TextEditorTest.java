@@ -134,6 +134,100 @@ public class TextEditorTest {
 
     @Test
     public void testUndoAndRedo() {
+        String s1 = editor.undo();
+        assertEquals("", s1);
 
+        String s2 = editor.append("The king of the world likes to eat apple.");
+        assertEquals("The king of the world likes to eat apple.", s2);
+        String s3 = editor.undo();
+        assertEquals("", s3);
+        String s4 = editor.undo();
+        assertEquals("", s4);
+
+        String s5 = editor.redo();
+        assertEquals("The king of the world likes to eat apple.", s5);
+
+        editor.move(4);
+        String s6 = editor.append("superstitious ");
+        assertEquals("The superstitious king of the world likes to eat apple.", s6);
+
+        editor.select(4, 18);
+        String s7 = editor.delete();
+        assertEquals("The king of the world likes to eat apple.", s7);
+
+        String s8 = editor.undo();
+        assertEquals("The superstitious king of the world likes to eat apple.", s8);
+
+        editor.move(s8.length());
+        String s9 = editor.append(" The queen hates apple!");
+        assertEquals("The superstitious king of the world likes to eat apple. The queen hates apple!", s9);
+
+        String s10 = editor.undo();
+        assertEquals("The superstitious king of the world likes to eat apple.", s10);
+
+        String s11 = editor.undo();
+        assertEquals("The king of the world likes to eat apple.", s11);
+
+        String s12 = editor.undo();
+        assertEquals("", s12);
+    }
+
+    @Test
+    public void testUndoAndRedo2() {
+        String s1 = editor.redo();
+        assertEquals("", s1);
+
+        editor.append("It");
+        editor.append(" is");
+        editor.append(" a");
+        editor.append(" good");
+        String s2 = editor.append(" time");
+        assertEquals("It is a good time", s2);
+
+        assertEquals("It is a good", editor.undo());
+        assertEquals("It is a", editor.undo());
+        assertEquals("It is", editor.undo());
+        assertEquals("It", editor.undo());
+        assertEquals("", editor.undo());
+        assertEquals("", editor.undo());
+        assertEquals("", editor.undo());
+
+        assertEquals("It", editor.redo());
+        assertEquals("It is", editor.redo());
+        assertEquals("It is a", editor.redo());
+        assertEquals("It is a good", editor.redo());
+        assertEquals("It is a good time", editor.redo());
+        assertEquals("It is a good time", editor.redo());
+        assertEquals("It is a good time", editor.redo());
+        assertEquals("It is a good time", editor.redo());
+
+        assertEquals("It is a good", editor.undo());
+        assertEquals("It is a", editor.undo());
+
+        assertEquals("It is an", editor.append("n"));
+        assertEquals("It is an awesome", editor.append(" awesome"));
+        assertEquals("It is an awesome opportunity", editor.append(" opportunity"));
+        assertEquals("It is an awesome opportunity", editor.redo());
+        assertEquals("It is an awesome opportunity", editor.redo());
+
+        assertEquals("It is an awesome", editor.undo());
+        assertEquals("It is an", editor.undo());
+        assertEquals("It is a", editor.undo());
+        assertEquals("It is", editor.undo());
+
+        editor.select(3, 5);
+        assertEquals("It ", editor.cut());
+
+        assertEquals("It is", editor.paste());
+        assertEquals("It isis", editor.paste());
+        assertEquals("It isisis", editor.paste());
+
+        assertEquals("It isis", editor.undo());
+        assertEquals("It isisis", editor.redo());
+        assertEquals("It isisisis", editor.paste());
+
+        editor.select(0, 2);
+        assertEquals("is isisisis", editor.paste());
+        assertEquals("A isisisis", editor.append("A"));
     }
 }
