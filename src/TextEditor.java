@@ -11,13 +11,13 @@ public class TextEditor {
     int[] select = new int[2];
     boolean selected;
 
-    private class EditorState {
+    private class TextState {
         String s;
         int position;
         int[] select = new int[2];
         boolean selected;
 
-        public EditorState (String s, int position, int[] select, boolean selected) {
+        public TextState (String s, int position, int[] select, boolean selected) {
             this.s = s;
             this.position = position;
             this.select = select;
@@ -26,21 +26,21 @@ public class TextEditor {
     }
 
     String clipboard;
-    Stack<EditorState> undoStack;
-    Stack<EditorState> redoStack;
+    Stack<TextState> undoStack;
+    Stack<TextState> redoStack;
 
     private class FileState {
-        EditorState editorState;
-        Stack<EditorState> undoStack;
-        Stack<EditorState> redoStack;
+        TextState textState;
+        Stack<TextState> undoStack;
+        Stack<TextState> redoStack;
         public FileState() {
-            editorState = new EditorState("", 0, new int[]{0, 0}, false);
+            textState = new TextState("", 0, new int[]{0, 0}, false);
             undoStack = new Stack<>();
             redoStack = new Stack<>();
         }
 
-        public FileState(EditorState editorState, Stack<EditorState> undoStack, Stack<EditorState> redoStack) {
-            this.editorState = editorState;
+        public FileState(TextState textState, Stack<TextState> undoStack, Stack<TextState> redoStack) {
+            this.textState = textState;
             this.undoStack = undoStack;
             this.redoStack = redoStack;
         }
@@ -65,7 +65,7 @@ public class TextEditor {
     }
 
     public String append(String value) {
-        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        undoStack.push(new TextState(sb.toString(), position, select, selected));
         //overwrite at selected or append at position
         if (selected) {
             sb.replace(select[0], select[1], value);
@@ -92,7 +92,7 @@ public class TextEditor {
     }
 
     public String delete() {
-        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        undoStack.push(new TextState(sb.toString(), position, select, selected));
         //delete char at pos or selected
         if (selected) {
             sb.replace(select[0], select[1], "");
@@ -134,8 +134,8 @@ public class TextEditor {
         //make it simple, only string can be undo/redo, but still remember the position and select
         if (undoStack.size() > 0) {
             //Record the current state first
-            redoStack.push(new EditorState(sb.toString(), position, select, selected));
-            EditorState prevState = undoStack.pop();
+            redoStack.push(new TextState(sb.toString(), position, select, selected));
+            TextState prevState = undoStack.pop();
             sb = new StringBuilder(prevState.s);
             position = prevState.position;
             select = prevState.select;
@@ -147,8 +147,8 @@ public class TextEditor {
     public String redo() {
         if (redoStack.size() > 0) {
             //Record the current state first
-            undoStack.push(new EditorState(sb.toString(), position, select, selected));
-            EditorState prevState = redoStack.pop();
+            undoStack.push(new TextState(sb.toString(), position, select, selected));
+            TextState prevState = redoStack.pop();
             sb = new StringBuilder(prevState.s);
             position = prevState.position;
             select = prevState.select;
@@ -172,13 +172,13 @@ public class TextEditor {
             throw new NameNotFoundException("File does not exist: " + filename);
         }
         FileState fileState = files.get(filename);
-        files.put(currentFile, new FileState(new EditorState(sb.toString(), position, select, selected), undoStack, redoStack));
+        files.put(currentFile, new FileState(new TextState(sb.toString(), position, select, selected), undoStack, redoStack));
 
-        EditorState editorState = fileState.editorState;
-        this.sb = new StringBuilder(editorState.s);
-        this.position = editorState.position;
-        this.select = editorState.select;
-        this.selected = editorState.selected;
+        TextState textState = fileState.textState;
+        this.sb = new StringBuilder(textState.s);
+        this.position = textState.position;
+        this.select = textState.select;
+        this.selected = textState.selected;
         this.undoStack = fileState.undoStack;
         this.redoStack = fileState.redoStack;
         this.currentFile = filename;
