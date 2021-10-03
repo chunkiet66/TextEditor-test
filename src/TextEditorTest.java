@@ -228,6 +228,7 @@ public class TextEditorTest {
 
         editor.select(0, 2);
         assertEquals("is isisisis", editor.paste());
+        assertEquals("It isisisis", editor.undo());
         assertEquals("A isisisis", editor.append("A"));
     }
 }

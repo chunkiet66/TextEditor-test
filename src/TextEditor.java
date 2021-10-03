@@ -33,10 +33,11 @@ public class TextEditor {
         clipboard = "";
         undoStack = new Stack<>();
         redoStack = new Stack<>();
-        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
     }
 
     public String append(String value) {
+        undoStack.push(new EditorState(sb.toString(), position, select, selected));
         //overwrite at selected or append at position
         if (selected) {
             sb.replace(select[0], select[1], value);
@@ -46,7 +47,7 @@ public class TextEditor {
             sb.insert(position, value);
             position = position + value.length();
         }
-        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
         redoStack.clear();
         return sb.toString();
     }
@@ -60,9 +61,11 @@ public class TextEditor {
         } else {
             this.position = position;
         }
+        selected = false;
     }
 
     public String delete() {
+        undoStack.push(new EditorState(sb.toString(), position, select, selected));
         //delete char at pos or selected
         if (selected) {
             sb.replace(select[0], select[1], "");
@@ -71,7 +74,7 @@ public class TextEditor {
         } else if (sb.length() > 0 && position < sb.length()) {
             sb.deleteCharAt(position);
         }
-        undoStack.push(new EditorState(sb.toString(), position, select, selected));
+        //undoStack.push(new EditorState(sb.toString(), position, select, selected));
         redoStack.clear();
         return sb.toString();
     }
@@ -105,26 +108,28 @@ public class TextEditor {
 
     public String undo() {
         //make it simple, only string can be undo/redo, but still remember the position and select
-        if (undoStack.size() > 1) {
-            redoStack.push(undoStack.pop());
+        if (undoStack.size() > 0) {
+            //Record the current state first
+            redoStack.push(new EditorState(sb.toString(), position, select, selected));
+            EditorState prevState = undoStack.pop();
+            sb = new StringBuilder(prevState.s);
+            position = prevState.position;
+            select = prevState.select;
+            selected = prevState.selected;
         }
-        EditorState prevState = undoStack.peek();
-        sb = new StringBuilder(prevState.s);
-        position = prevState.position;
-        select = prevState.select;
-        selected = prevState.selected;
         return sb.toString();
     }
 
     public String redo() {
         if (redoStack.size() > 0) {
-            undoStack.push(redoStack.pop());
+            //Record the current state first
+            undoStack.push(new EditorState(sb.toString(), position, select, selected));
+            EditorState prevState = redoStack.pop();
+            sb = new StringBuilder(prevState.s);
+            position = prevState.position;
+            select = prevState.select;
+            selected = prevState.selected;
         }
-        EditorState prevState = undoStack.peek();
-        sb = new StringBuilder(prevState.s);
-        position = prevState.position;
-        select = prevState.select;
-        selected = prevState.selected;
         return sb.toString();
     }
 
